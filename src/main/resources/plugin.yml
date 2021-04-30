@@ -1,0 +1,5 @@
+name: FileManager
+version: ${project.version}
+main: com.github.tanokun.filemanager.FileManager
+authors: [ tanoKun ]
+description: Plugin for editing files. 
