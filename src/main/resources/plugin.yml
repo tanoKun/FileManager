@@ -1,6 +1,6 @@
 name: FileManager
-api-version: 1.14.4
 version: ${project.version}
+api-version: 1.13
 main: com.github.tanokun.filemanager.FileManager
 authors: [ tanoKun ]
 depend: [ProtocolLib]
