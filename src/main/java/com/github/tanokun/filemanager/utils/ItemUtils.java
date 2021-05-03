@@ -31,22 +31,4 @@ public class ItemUtils implements Listener {
         is.setItemMeta(im);
         return is;
     }
-    public static ItemStack createItem(Material material, String name, int count, boolean glowing, DyeColor color){
-        ItemStack is = new ItemStack(material, count, color.getWoolData());
-        ItemMeta im = is.getItemMeta();
-        im.setDisplayName(name);
-        if (glowing == true) {im.addEnchant(new Glowing(), 1, true);}
-        is.setItemMeta(im);
-        return is;
-    }
-    public static ItemStack createItem(Material material, String name, String[] lore, int count, boolean glowing, DyeColor color){
-        ItemStack is = new ItemStack(material, count, color.getWoolData());
-
-        ItemMeta im = is.getItemMeta();
-        im.setDisplayName(name);
-        im.setLore(Arrays.asList(lore));
-        if (glowing == true) {im.addEnchant(new Glowing(), 1, true);}
-        is.setItemMeta(im);
-        return is;
-    }
 }

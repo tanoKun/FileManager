@@ -10,11 +10,11 @@ import com.github.tanokun.filemanager.utils.smart_inv.inv.contents.InventoryCont
 import com.github.tanokun.filemanager.utils.smart_inv.inv.contents.InventoryProvider;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.contents.Pagination;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.contents.SlotIterator;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -65,7 +65,7 @@ public class DirectoryInventory implements InventoryProvider {
         Pagination pagination = contents.pagination();
         ClickableItem[] items = new ClickableItem[files.size()];
         contents.fillRect(4, 0, 4, 8,
-                ClickableItem.empty(ItemUtils.createItem(Material.STAINED_GLASS_PANE, "  ", 1, false, DyeColor.BLUE)));
+                ClickableItem.empty(ItemUtils.createItem(Material.BLUE_STAINED_GLASS_PANE, "  ", 1, false)));
 
         contents.set(5, 3, ClickableItem.of(ItemUtils.createItem(Material.ANVIL,
                 "§aファイル作成", 1, true), no ->
@@ -73,7 +73,7 @@ public class DirectoryInventory implements InventoryProvider {
                     String path = e.getItem().getItemMeta().getDisplayName();
                     if (StringUtils.containsAny(path, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})){
                         player.sendMessage(FileManager.PX + "§c使用できない文字が含まれています");
-                        FileManager.playSound(player, Sound.BLOCK_NOTE_BASS, 10, 1);
+                        FileManager.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 10, 1);
                     }
 
                     player.closeInventory();
@@ -123,11 +123,11 @@ public class DirectoryInventory implements InventoryProvider {
                     break;
 
                 case "sk":
-                    items[i] = paperContents(player, contents, file, Material.DIAMOND,true);
+                    items[i] = paperContents(player, contents, file, Material.HEART_OF_THE_SEA,true);
                     break;
 
                 case "jar":
-                    items[i] = paperContents(player, contents, file, Material.NETHER_BRICK_ITEM,true);
+                    items[i] = paperContents(player, contents, file, Material.NETHER_BRICK,true);
                     break;
 
                 default:
@@ -187,16 +187,16 @@ public class DirectoryInventory implements InventoryProvider {
                     FileUtils.getBasePath() + "plugins" + File.separator, "", 1));
             if (FileManager.getManagerData().getNoEditFiles().contains(name2)){
                 player.sendMessage(FileManager.PX + "§cそのファイルは変更できません。");
-                FileManager.playSound(player, Sound.BLOCK_NOTE_BASS, 10, 1);
+                FileManager.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 10, 1);
                 return;
             }
-
+            
             if (contents.property("edit_name", false)) {
                 new AnvilGUI("§aファイル名変更", ItemUtils.createItem(Material.PAPER, file.getName(), 1, glowing), e -> {
                     String name = e.getItem().getItemMeta().getDisplayName();
                     if (StringUtils.containsAny(name, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})) {
                         player.sendMessage(FileManager.PX + "§c使用できない文字が含まれています");
-                        FileManager.playSound(player, Sound.BLOCK_NOTE_BASS, 10, 1);
+                        FileManager.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 10, 1);
                     }
 
                     player.closeInventory();
@@ -258,7 +258,7 @@ public class DirectoryInventory implements InventoryProvider {
                     String name = e.getItem().getItemMeta().getDisplayName();
                     if (StringUtils.containsAny(name, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})) {
                         player.sendMessage(FileManager.PX + "§c使用できない文字が含まれています");
-                        FileManager.playSound(player, Sound.BLOCK_NOTE_BASS, 10, 1);
+                        FileManager.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 10, 1);
                     }
 
                     player.closeInventory();

@@ -1,4 +1,5 @@
 name: FileManager
+api-version: 1.14.4
 version: ${project.version}
 main: com.github.tanokun.filemanager.FileManager
 authors: [ tanoKun ]

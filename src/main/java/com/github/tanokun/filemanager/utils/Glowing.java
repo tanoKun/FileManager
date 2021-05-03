@@ -1,5 +1,7 @@
 package com.github.tanokun.filemanager.utils;
 
+import com.github.tanokun.filemanager.FileManager;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.ItemStack;
@@ -7,7 +9,7 @@ import org.bukkit.inventory.ItemStack;
 public class Glowing extends Enchantment {
 
     public Glowing() {
-        super(100);
+        super(new NamespacedKey(FileManager.getPlugin(), "glowing"));
     }
     @Override
     public boolean canEnchantItem(ItemStack arg0) {

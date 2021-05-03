@@ -42,7 +42,7 @@ public class DeleteFileCheckInventory implements InventoryProvider {
         String path = FileUtils.changeSeparator_Slash(StringUtils.replace(file.getAbsolutePath(),
                 FileUtils.getBasePath(), "", 1));
 
-        contents.set(0, 2, ClickableItem.of(ItemUtils.createItem(Material.WOOL, "§a削除します", new String[]{"§f・Path -> " + path}, 1, true, DyeColor.GREEN), e ->{
+        contents.set(0, 2, ClickableItem.of(ItemUtils.createItem(Material.GREEN_WOOL, "§a削除します", new String[]{"§f・Path -> " + path}, 1, true), e ->{
                 player.closeInventory();
             new BukkitRunnable(){
                 public void run() {
@@ -54,7 +54,7 @@ public class DeleteFileCheckInventory implements InventoryProvider {
                 }}.runTaskAsynchronously(FileManager.getPlugin());
         }));
 
-        contents.set(0, 6, ClickableItem.of(ItemUtils.createItem(Material.WOOL, "§c削除しません", new String[]{"§f・Path -> " + path}, 1, true, DyeColor.RED), e -> {
+        contents.set(0, 6, ClickableItem.of(ItemUtils.createItem(Material.RED_WOOL, "§c削除しません", new String[]{"§f・Path -> " + path}, 1, true), e -> {
             contents.removeProperty("delete_file");
             previousFolder.getDirectory().open(player, page);
         }));
