@@ -26,12 +26,18 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class DirectoryInventory implements InventoryProvider {
-    public List<File> files;
+    public List<File> files = new ArrayList<>();
     public final Path path;
     public final DirectoryInventory previousFolder;
 
     public DirectoryInventory(Path path, DirectoryInventory previousFolder) {
-        this.files = Arrays.asList(path.toFile().listFiles());
+        if (!FileManager.getManagerData().isShowingJarFile()) {
+            Arrays.stream(path.toFile().listFiles())
+                    .filter(file -> !file.getName().endsWith(".jar"))
+                    .forEach(file -> files.add(file));
+        } else {
+            this.files = Arrays.asList(path.toFile().listFiles());
+        }
         this.path = path;
         this.previousFolder = previousFolder == null ? this : previousFolder;
     }
@@ -62,35 +68,34 @@ public class DirectoryInventory implements InventoryProvider {
                 ClickableItem.empty(ItemUtils.createItem(Material.STAINED_GLASS_PANE, "  ", 1, false, DyeColor.BLUE)));
 
         contents.set(5, 3, ClickableItem.of(ItemUtils.createItem(Material.ANVIL,
-                "§aファイル作成", 1, true), no -> {
-            new AnvilGUI("§aファイル作成", ItemUtils.createItem(Material.PAPER, "ファイル名の入力", 1, true), e -> {
-                String path = e.getItem().getItemMeta().getDisplayName();
-                if (StringUtils.containsAny(path, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})){
-                    player.sendMessage(FileManager.PX + "§c使用できない文字が含まれています");
-                    FileManager.playSound(player, Sound.BLOCK_NOTE_BASS, 10, 1);
-                }
+                "§aファイル作成", 1, true), no ->
+                new AnvilGUI("§aファイル作成", ItemUtils.createItem(Material.PAPER, "ファイル名の入力", 1, true), e -> {
+                    String path = e.getItem().getItemMeta().getDisplayName();
+                    if (StringUtils.containsAny(path, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})){
+                        player.sendMessage(FileManager.PX + "§c使用できない文字が含まれています");
+                        FileManager.playSound(player, Sound.BLOCK_NOTE_BASS, 10, 1);
+                    }
 
-                player.closeInventory();
+                    player.closeInventory();
 
-                if (FilenameUtils.getExtension(path).equals("")){
-                    File file = new File(this.path.toFile().getPath() + File.separator + path);
-                    player.sendMessage(FileManager.PX + "§bフォルダを作成中...");
-                    file.mkdirs();
-                    player.sendMessage(FileManager.PX + "§bフォルダ「" + file.getName() + "」を作成しました");
-                    new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
-                    FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
+                    if (FilenameUtils.getExtension(path).equals("")){
+                        File file = new File(this.path.toFile().getPath() + File.separator + path);
+                        player.sendMessage(FileManager.PX + "§bフォルダを作成中...");
+                        file.mkdirs();
+                        player.sendMessage(FileManager.PX + "§bフォルダ「" + file.getName() + "」を作成しました");
+                        new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
+                        FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
 
-                } else {
-                    File file = new File(this.path.toFile().getPath() + File.separator + path);
-                    player.sendMessage(FileManager.PX + "§bファイルを作成中...");
-                    try {file.createNewFile();} catch (IOException ioException) {ioException.printStackTrace();}
-                    player.sendMessage(FileManager.PX + "§aファイル「" + file.getName() + "」を作成しました");
-                    new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
-                    FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
-                }
+                    } else {
+                        File file = new File(this.path.toFile().getPath() + File.separator + path);
+                        player.sendMessage(FileManager.PX + "§bファイルを作成中...");
+                        try {file.createNewFile();} catch (IOException ioException) {ioException.printStackTrace();}
+                        player.sendMessage(FileManager.PX + "§aファイル「" + file.getName() + "」を作成しました");
+                        new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
+                        FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
+                    }
 
-            }).open(player);
-        }));
+                }).open(player)));
 
         contents.set(5, 4, ClickableItem.of(ItemUtils.createItem(Material.FEATHER,
                 "§bファイル名変更", new String[]{"§fクリックしたあと、", "§f変更したいファイルを選択します"}, 1, true), no -> {
@@ -178,6 +183,14 @@ public class DirectoryInventory implements InventoryProvider {
             item = ItemUtils.createItem(material, "§f" + file.getName(), new String[]{"§bクリックで選択"}, 1, glowing);
 
         return ClickableItem.of(item, no -> {
+            String name2 = FileUtils.changeSeparator_Slash(StringUtils.replace(file.getAbsolutePath(),
+                    FileUtils.getBasePath() + "plugins" + File.separator, "", 1));
+            if (FileManager.getManagerData().getNoEditFiles().contains(name2)){
+                player.sendMessage(FileManager.PX + "§cそのファイルは変更できません。");
+                FileManager.playSound(player, Sound.BLOCK_NOTE_BASS, 10, 1);
+                return;
+            }
+
             if (contents.property("edit_name", false)) {
                 new AnvilGUI("§aファイル名変更", ItemUtils.createItem(Material.PAPER, file.getName(), 1, glowing), e -> {
                     String name = e.getItem().getItemMeta().getDisplayName();
@@ -185,7 +198,7 @@ public class DirectoryInventory implements InventoryProvider {
                         player.sendMessage(FileManager.PX + "§c使用できない文字が含まれています");
                         FileManager.playSound(player, Sound.BLOCK_NOTE_BASS, 10, 1);
                     }
-//
+
                     player.closeInventory();
 
                     new BukkitRunnable() {
