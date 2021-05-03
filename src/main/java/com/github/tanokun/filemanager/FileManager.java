@@ -28,12 +28,15 @@ public final class FileManager extends JavaPlugin {
 
     private static InventoryManager inventoryManager;
 
+    private static ManagerData managerData;
 
     public void onEnable() {
         saveDefaultConfig(); config = getConfig();
         plugin = this;
 
         inventoryManager = new InventoryManager(this);
+
+        managerData = new ManagerData(this);
 
         ProtocolLibrary.getProtocolManager().addPacketListener(new AnvilListener());
 
@@ -52,13 +55,7 @@ public final class FileManager extends JavaPlugin {
             e.printStackTrace();
         }
 
-        Bukkit.getPluginCommand("files").setExecutor(new FilesCommand(getHasPermissionPlayers()));
-    }
-
-    private List<String> getHasPermissionPlayers(){
-        List<String> players = new ArrayList<>();
-        players = (List<String>) config.getList("managers", players);
-        return players;
+        Bukkit.getPluginCommand("files").setExecutor(new FilesCommand());
     }
 
     public static void playSound(Player player, Sound sound, int volume, double v2){
@@ -73,4 +70,7 @@ public final class FileManager extends JavaPlugin {
         return inventoryManager;
     }
 
+    public static ManagerData getManagerData() {
+        return managerData;
+    }
 }
