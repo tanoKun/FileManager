@@ -2,4 +2,11 @@ name: FileManager
 version: ${project.version}
 main: com.github.tanokun.filemanager.FileManager
 authors: [ tanoKun ]
+depend: [ProtocolLib]
 description: Plugin for editing files. 
+
+commands:
+  files:
+    description: open the files menu.
+    permission: op
+    permission-message: Unknown command. Type "/help" for help.
