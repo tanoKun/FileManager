@@ -1,2 +1,7 @@
 managers:
   - owner
+
+options:
+  showingJarFile: true
+  noEditFiles:
+    - FileManager/config.yml
