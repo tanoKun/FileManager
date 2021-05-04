@@ -1,13 +1,11 @@
 package com.github.tanokun.filemanager.utils;
 
-import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class ItemUtils implements Listener {
     public static ItemStack createItem(Material material, String name, int count, boolean glowing){

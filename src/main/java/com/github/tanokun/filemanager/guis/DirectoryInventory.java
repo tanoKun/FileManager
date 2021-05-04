@@ -3,15 +3,16 @@ package com.github.tanokun.filemanager.guis;
 import com.github.tanokun.filemanager.FileManager;
 import com.github.tanokun.filemanager.utils.FileUtils;
 import com.github.tanokun.filemanager.utils.ItemUtils;
-import com.github.tanokun.filemanager.utils.anvil.AnvilGUI;
+import com.github.tanokun.filemanager.utils.chat.OutputChat;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.ClickableItem;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.SmartInventory;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.contents.InventoryContents;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.contents.InventoryProvider;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.contents.Pagination;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.contents.SlotIterator;
+import net.minecraft.server.v1_14_R1.PacketPlayOutOpenWindow;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.DyeColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
@@ -23,7 +24,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class DirectoryInventory implements InventoryProvider {
     public List<File> files = new ArrayList<>();
@@ -57,8 +60,6 @@ public class DirectoryInventory implements InventoryProvider {
                 .build();
     }
 
-
-
     @Override
     public void init(Player player, InventoryContents contents) {
 
@@ -68,34 +69,41 @@ public class DirectoryInventory implements InventoryProvider {
                 ClickableItem.empty(ItemUtils.createItem(Material.BLUE_STAINED_GLASS_PANE, "  ", 1, false)));
 
         contents.set(5, 3, ClickableItem.of(ItemUtils.createItem(Material.ANVIL,
-                "§aファイル作成", 1, true), no ->
-                new AnvilGUI("§aファイル作成", ItemUtils.createItem(Material.PAPER, "ファイル名の入力", 1, true), e -> {
-                    String path = e.getItem().getItemMeta().getDisplayName();
-                    if (StringUtils.containsAny(path, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})){
-                        player.sendMessage(FileManager.PX + "§c使用できない文字が含まれています");
-                        FileManager.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 10, 1);
-                    }
+                "§aファイル作成", 1, true), no -> {
+            player.sendMessage(FileManager.PX + "§b作成したいファイル名を入力してください");
+            player.sendMessage(FileManager.PX + "§b「cancel」で作成を中止できます");
+            player.closeInventory();
+            new OutputChat(player, e -> {
+                String path = e.getMessage();
+                if (path.equalsIgnoreCase("cancel")){
+                    player.sendMessage(FileManager.PX + "§aキャンセルしました");
+                    new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
+                    return;
+                }
 
-                    player.closeInventory();
+                if (StringUtils.containsAny(path, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})){
+                    player.sendMessage(FileManager.PX + "§c使用できない文字が含まれています");
+                    FileManager.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 10, 1);
+                }
 
-                    if (FilenameUtils.getExtension(path).equals("")){
-                        File file = new File(this.path.toFile().getPath() + File.separator + path);
-                        player.sendMessage(FileManager.PX + "§bフォルダを作成中...");
-                        file.mkdirs();
-                        player.sendMessage(FileManager.PX + "§bフォルダ「" + file.getName() + "」を作成しました");
-                        new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
-                        FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
+                if (FilenameUtils.getExtension(path).equals("")){
+                    File file = new File(this.path.toFile().getPath() + File.separator + path);
+                    player.sendMessage(FileManager.PX + "§bフォルダを作成中...");
+                    file.mkdirs();
+                    player.sendMessage(FileManager.PX + "§bフォルダ「" + file.getName() + "」を作成しました");
+                    new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
+                    FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
 
-                    } else {
-                        File file = new File(this.path.toFile().getPath() + File.separator + path);
-                        player.sendMessage(FileManager.PX + "§bファイルを作成中...");
-                        try {file.createNewFile();} catch (IOException ioException) {ioException.printStackTrace();}
-                        player.sendMessage(FileManager.PX + "§aファイル「" + file.getName() + "」を作成しました");
-                        new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
-                        FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
-                    }
-
-                }).open(player)));
+                } else {
+                    File file = new File(this.path.toFile().getPath() + File.separator + path);
+                    player.sendMessage(FileManager.PX + "§bファイルを作成中...");
+                    try {file.createNewFile();} catch (IOException ioException) {ioException.printStackTrace();}
+                    player.sendMessage(FileManager.PX + "§aファイル「" + file.getName() + "」を作成しました");
+                    new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
+                    FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
+                }
+            });
+        }));
 
         contents.set(5, 4, ClickableItem.of(ItemUtils.createItem(Material.FEATHER,
                 "§bファイル名変更", new String[]{"§fクリックしたあと、", "§f変更したいファイルを選択します"}, 1, true), no -> {
@@ -178,7 +186,7 @@ public class DirectoryInventory implements InventoryProvider {
 
     private ClickableItem paperContents(Player player, InventoryContents contents, File file, Material material, boolean glowing){
         ItemStack item = ItemUtils.createItem(material, "§f" + file.getName(),
-                new String[]{"§bクリックで編集", "  ", "§f鉄床にはfile.ioなどのURL", "§fを入力してください"}, 1, glowing);
+                new String[]{"§bクリックで編集"}, 1, glowing);
         if (contents.property("edit_name", false) || contents.property("delete_file", false))
             item = ItemUtils.createItem(material, "§f" + file.getName(), new String[]{"§bクリックで選択"}, 1, glowing);
 
@@ -192,57 +200,69 @@ public class DirectoryInventory implements InventoryProvider {
             }
             
             if (contents.property("edit_name", false)) {
-                new AnvilGUI("§aファイル名変更", ItemUtils.createItem(Material.PAPER, file.getName(), 1, glowing), e -> {
-                    String name = e.getItem().getItemMeta().getDisplayName();
-                    if (StringUtils.containsAny(name, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})) {
+                player.sendMessage(FileManager.PX + "§b変更後のファイル名を入力してください");
+                player.sendMessage(FileManager.PX + "§b「cancel」で変更を中止できます");
+                player.closeInventory();
+                new OutputChat(player, e -> {
+                    String name = e.getMessage();
+                    if (name.equalsIgnoreCase("cancel")){
+                        player.sendMessage(FileManager.PX + "§aキャンセルしました");
+                        new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
+                        return;
+                    }
+                    if (StringUtils.containsAny(name, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})){
                         player.sendMessage(FileManager.PX + "§c使用できない文字が含まれています");
                         FileManager.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 10, 1);
                     }
-
-                    player.closeInventory();
-
-                    new BukkitRunnable() {
+                    new BukkitRunnable(){
                         public void run() {
                             player.sendMessage(FileManager.PX + "§bファイル名を変更中...");
                             file.renameTo(new File(path.toFile().getPath() + File.separator + name));
-                            player.sendMessage(FileManager.PX + "§aファイル名を「" + name + "」に変更しました");
-                            new DirectoryInventory(path, previousFolder).getDirectory().open(player);
-                            FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
-                        }
-                    }.runTaskAsynchronously(FileManager.getPlugin());
-                }).open(player);
+                            Bukkit.getScheduler().runTask(FileManager.getPlugin(), () -> {
+                                player.sendMessage(FileManager.PX + "§aファイル名を「" + name + "」に変更しました");
+                                new DirectoryInventory(path, previousFolder).getDirectory().open(player);
+                                FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
+                            });
+                        }}.runTaskAsynchronously(FileManager.getPlugin());
+                });
                 return;
             }
             else if (contents.property("delete_file", false)) {
                 new DeleteFileCheckInventory(file, this, contents.pagination().getPage()).getDirectory().open(player);
             }
             else {
-                new AnvilGUI("§aURL", ItemUtils.createItem(Material.PAPER, file.getName() + " (URL入力)", 1, glowing), e -> {
-                    String url = e.getItem().getItemMeta().getDisplayName();
+                player.sendMessage(FileManager.PX + "§bfile.io などのURLを入力してください");
+                player.sendMessage(FileManager.PX + "§b「cancel」で変更を中止できます");
+                player.closeInventory();
+                new OutputChat(player, e -> {
+                    String url = e.getMessage();
+                    if (url.equalsIgnoreCase("cancel")){
+                        player.sendMessage(FileManager.PX + "§aキャンセルしました");
+                        new DirectoryInventory(path, previousFolder).getDirectory().open(player);
+                        return;
+                    }
+                    player.sendMessage(FileManager.PX + "§bファイル内容を変更中...");
 
-                    player.closeInventory();
-
-                    new BukkitRunnable() {
-                        public void run() {
-                            player.sendMessage(FileManager.PX + "§bファイル内容を変更中...");
-                            try {
-                                FileUtils.DownloadFile(url, file.toPath());
-                            } catch (Exception exception) {
-                                if (exception.getMessage().contains("no protocol")){
-                                    player.sendMessage(FileManager.PX + "§cエラーが発生しました。§7(URL: " + url + "は存在しません)");
-                                } else{
-                                    player.sendMessage(FileManager.PX + "§c不明なエラーが発生しました。" +
-                                            "§7(" + exception.getClass().getName() + ": " + exception.getMessage() + ")");
-                                    exception.printStackTrace();
-                                }
-                                return;
+                    Bukkit.getScheduler().runTaskAsynchronously(FileManager.getPlugin(), () -> {
+                        try {
+                            FileUtils.DownloadFile(url, file.toPath());
+                        } catch (Exception exception) {
+                            if (exception.getMessage().contains("no protocol")){
+                                player.sendMessage(FileManager.PX + "§cエラーが発生しました。§7(URL: " + url + "は存在しません)");
+                            } else{
+                                player.sendMessage(FileManager.PX + "§c不明なエラーが発生しました。" +
+                                        "§7(" + exception.getClass().getName() + ": " + exception.getMessage() + ")");
+                                exception.printStackTrace();
                             }
+                            return;
+                        }
+                        Bukkit.getScheduler().runTask(FileManager.getPlugin(), () -> {
                             player.sendMessage(FileManager.PX + "§aファイル内容をURL「" + url + "」に変更しました");
                             new DirectoryInventory(path, previousFolder).getDirectory().open(player);
                             FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
-                        }
-                    }.runTaskAsynchronously(FileManager.getPlugin());
-                }).open(player);
+                        });
+                    });
+                });
             }
         });
     }
@@ -254,24 +274,33 @@ public class DirectoryInventory implements InventoryProvider {
 
         return ClickableItem.of(item, no -> {
             if (contents.property("edit_name", false)){
-                new AnvilGUI("§aファイル名変更", ItemUtils.createItem(Material.PAPER, file.getName(), 1, glowing), e -> {
-                    String name = e.getItem().getItemMeta().getDisplayName();
-                    if (StringUtils.containsAny(name, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})) {
+                player.sendMessage(FileManager.PX + "§b変更後のファイル名を入力してください");
+                player.sendMessage(FileManager.PX + "§b「cancel」で変更を中止できます");
+                player.closeInventory();
+                new OutputChat(player, e -> {
+                    String name = e.getMessage();
+                    if (name.equalsIgnoreCase("cancel")){
+                        player.sendMessage(FileManager.PX + "§aキャンセルしました");
+                        new DirectoryInventory(this.path, previousFolder).getDirectory().open(player);
+                        return;
+                    }
+
+                    if (StringUtils.containsAny(name, new char[]{'\\', '/', ':', '*', '?', '\"', '<', '|'})){
                         player.sendMessage(FileManager.PX + "§c使用できない文字が含まれています");
                         FileManager.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 10, 1);
                     }
-
-                    player.closeInventory();
 
                     new BukkitRunnable(){
                         public void run() {
                             player.sendMessage(FileManager.PX + "§bファイル名を変更中...");
                             file.renameTo(new File(path.toFile().getPath() + File.separator + name));
-                            player.sendMessage(FileManager.PX + "§aファイル名を「" + name + "」に変更しました");
-                            new DirectoryInventory(path, previousFolder).getDirectory().open(player);
-                            FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
+                            Bukkit.getScheduler().runTask(FileManager.getPlugin(), () -> {
+                                player.sendMessage(FileManager.PX + "§aファイル名を「" + name + "」に変更しました");
+                                new DirectoryInventory(path, previousFolder).getDirectory().open(player);
+                                FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
+                            });
                         }}.runTaskAsynchronously(FileManager.getPlugin());
-                }).open(player);
+                });
                 return;
             } else if (contents.property("delete_file", false)){
                 new DeleteFileCheckInventory(file, this, contents.pagination().getPage()).getDirectory().open(player);

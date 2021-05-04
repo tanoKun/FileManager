@@ -8,7 +8,6 @@ import com.github.tanokun.filemanager.utils.smart_inv.inv.SmartInventory;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.contents.InventoryContents;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.contents.InventoryProvider;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -49,8 +48,12 @@ public class DeleteFileCheckInventory implements InventoryProvider {
                     player.sendMessage(FileManager.PX + "§bファイルを削除中...");
                     file.delete();
                     player.sendMessage(FileManager.PX + "§aファイルを「" + path + "」削除しました");
-                    new DirectoryInventory(previousFolder.path, previousFolder.previousFolder).getDirectory().open(player);
-                    FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
+                    new BukkitRunnable(){
+                        public void run() {
+                            new DirectoryInventory(previousFolder.path, previousFolder.previousFolder).getDirectory().open(player);
+                            FileManager.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
+                        }
+                    }.runTask(FileManager.getPlugin());
                 }}.runTaskAsynchronously(FileManager.getPlugin());
         }));
 
