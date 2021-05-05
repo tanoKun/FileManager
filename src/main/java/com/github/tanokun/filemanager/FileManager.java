@@ -2,7 +2,7 @@ package com.github.tanokun.filemanager;
 
 import com.github.tanokun.filemanager.commands.FilesCommand;
 import com.github.tanokun.filemanager.utils.Glowing;
-import com.github.tanokun.filemanager.utils.chat.OutputChat;
+import com.github.tanokun.filemanager.utils.anvilgui.AnvilClickListener;
 import com.github.tanokun.filemanager.utils.smart_inv.inv.InventoryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -49,7 +49,7 @@ public final class FileManager extends JavaPlugin {
             e.printStackTrace();
         }
 
-        Bukkit.getPluginManager().registerEvents(new OutputChat.ChatListener(), this);
+        Bukkit.getPluginManager().registerEvents(new AnvilClickListener(), this);
 
         Bukkit.getPluginCommand("files").setExecutor(new FilesCommand());
     }

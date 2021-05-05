@@ -3,13 +3,10 @@ package com.github.tanokun.filemanager.commands;
 import com.github.tanokun.filemanager.FileManager;
 import com.github.tanokun.filemanager.guis.DirectoryInventory;
 import com.github.tanokun.filemanager.utils.FileUtils;
-import com.github.tanokun.filemanager.utils.chat.OutputChat;
-import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.nio.file.Paths;
 
@@ -24,4 +21,5 @@ public class FilesCommand implements CommandExecutor {
         new DirectoryInventory(Paths.get(FileUtils.getDefaultPath("")), null).getDirectory().open((Player) sender);
         return true;
     }
+
 }
